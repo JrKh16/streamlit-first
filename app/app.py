@@ -16,7 +16,7 @@ st.error("error")
 st.warning("warning")
 
 placeholder = st.empty()
-status = st.radio("chose one",["error","success"])
+status = st.radio("choose one",["error","success"])
 
 status
 if status == "success":
