@@ -8,9 +8,8 @@ chart_data = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
 st.line_chart(chart_data)
 
 st.title("Hello P!")
-st.title("This is my first streamlit")
 
-st.write("eiei")
+st.write("This is my first streamlit")
 st.info("info")
 st.success("success")
 st.error("error")
