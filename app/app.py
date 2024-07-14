@@ -6,12 +6,12 @@ import pydeck as pdk
 
 st.header("Hello P!")
 
-st.write("This is my first streamlit")
-st.info("info")
-st.success("success")
-st.error("error")
-st.warning("warning")
-st.markdown("eiei")
+st.page_link("pages/todo.py", label="TODOLIST", icon="📃")
+st.info("This is info")
+st.success("This is success")
+st.error("This is error")
+st.warning("This is warning")
+st.markdown("This is markdown")
 
 placeholder = st.empty()
 status = st.radio("choose one",["error","success"])
