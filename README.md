@@ -1,4 +1,4 @@
-This project create with python Streamlit is open-source framework and have ToDo list and read data 
+This project create with python Streamlit is open-source framework and have ToDo list and read data with CSV file
 
 If after deploy , ModuleNotFoundError: not have matplotlib or other module.
 
