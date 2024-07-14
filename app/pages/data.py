@@ -6,14 +6,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Title of the app
-st.title("Data File and Display Charts")
+st.title("Upload Data File and Display Charts")
 
-# File uploader
-uploaded_file = st.file_uploader("CSV file", type="csv")
+# File uploader with UTF-8 encoding
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
 if uploaded_file is not None:
-    # Read the CSV file
-    data = pd.read_csv(uploaded_file)
+    # Read the CSV file with UTF-8 encoding
+    data = pd.read_csv(uploaded_file, encoding='utf-8')
 
     # Display the first few rows of the dataframe
     st.write("Data Preview:")
@@ -46,8 +46,12 @@ if uploaded_file is not None:
         st.line_chart(data)
 
     elif chart_type == "Bar Chart":
-        st.write("Bar Chart")
-        st.bar_chart(data)
+        st.write("Select columns for X and Y axes:")
+        x_axis = st.selectbox("X-axis", options=data.columns)
+        y_axis = st.selectbox("Y-axis", options=data.columns)
+        st.write(f"Bar Chart of {y_axis} by {x_axis}")
+        # Create a bar chart with specified columns
+        st.bar_chart(data.set_index(x_axis)[y_axis])
 
     elif chart_type == "Scatter Plot":
         st.write("Select columns for X and Y axes:")
