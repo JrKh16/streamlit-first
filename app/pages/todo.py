@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Title
-st.title("EASY To-Do List App")
+st.title("EASY To-Do List")
 
 # Input for new to-do item
 new_task = st.text_input("Add a new task")
@@ -18,17 +18,17 @@ if st.button("Add Task"):
 
 # Display tasks
 st.subheader("Your Tasks")
-for i, task in enumerate(st.session_state.tasks):
+for p, task in enumerate(st.session_state.tasks):
     col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
-    completed = col1.checkbox("", value=task["completed"], key=i)
+    completed = col1.checkbox("", value=task["completed"], key=p)
     if completed:
-        st.session_state.tasks[i]["completed"] = completed
+        st.session_state.tasks[p]["completed"] = completed
     task_text = task["task"]
     if task["completed"]:
         task_text = f"~~{task_text}~~"
     col2.write(task_text)
-    if col3.button("Remove", key=f"remove_{i}"):
-        st.session_state.tasks.pop(i)
+    if col3.button("Remove", key=f"remove_{p}"):
+        st.session_state.tasks.pop(p)
         st.experimental_rerun()
 
 # Clear completed tasks
