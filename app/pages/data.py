@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Title of the app
-st.title("Data")
+st.title("Data File and Display Charts")
 
 # File uploader
 uploaded_file = st.file_uploader("CSV file", type="csv")
@@ -47,8 +47,7 @@ if uploaded_file is not None:
 
     elif chart_type == "Bar Chart":
         st.write("Bar Chart")
-        st.bar_chart(data, x="variety", y="yield", color="site", horizontal=True)
-
+        st.bar_chart(data)
 
     elif chart_type == "Scatter Plot":
         st.write("Select columns for X and Y axes:")
