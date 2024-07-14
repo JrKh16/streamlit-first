@@ -7,6 +7,7 @@ import pydeck as pdk
 st.header("Hello P!")
 
 st.page_link("pages/todo.py", label="TODOLIST", icon="📃")
+st.page_link("pages/data.py", label="DATA", icon="🪪")
 st.info("This is info")
 st.success("This is success")
 st.error("This is error")
