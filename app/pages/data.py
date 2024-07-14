@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Title of the app
-st.title("Advanced Data Analysis Tool")
+st.title("Data")
 
 # File uploader
 uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
