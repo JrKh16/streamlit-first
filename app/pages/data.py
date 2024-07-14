@@ -6,10 +6,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Title of the app
-st.title("Upload Data File and Display Charts")
+st.title("Data")
 
 # File uploader with UTF-8 encoding
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+uploaded_file = st.file_uploader("CSV file", type="csv")
 
 if uploaded_file is not None:
     # Read the CSV file with UTF-8 encoding
