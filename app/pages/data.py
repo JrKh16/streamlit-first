@@ -6,13 +6,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Title of the app
-st.title("Data")
+st.title("Advanced Data Analysis Tool")
 
-# File uploader with UTF-8 encoding
-uploaded_file = st.file_uploader("CSV file", type="csv")
+# File uploader
+uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
 
 if uploaded_file is not None:
-    # Read the CSV file with UTF-8 encoding
+    # Read the CSV file
     data = pd.read_csv(uploaded_file, encoding='utf-8')
 
     # Display the first few rows of the dataframe
@@ -40,17 +40,31 @@ if uploaded_file is not None:
         ]
     )
 
+    # Data Filtering Options
+    st.sidebar.title("Filter Options")
+    filter_columns = st.sidebar.multiselect("Select columns to filter", data.columns)
+    filter_conditions = {}
+    for col in filter_columns:
+        unique_values = data[col].unique()
+        filter_conditions[col] = st.sidebar.multiselect(f"Filter values for {col}", unique_values)
+    if filter_conditions:
+        for col, values in filter_conditions.items():
+            if values:
+                data = data[data[col].isin(values)]
+
     # Chart Type Logic
     if chart_type == "Line Chart":
-        st.write("Line Chart")
-        st.line_chart(data)
+        st.write("Select columns for X and Y axes:")
+        x_axis = st.selectbox("X-axis", options=data.columns)
+        y_axis = st.selectbox("Y-axis", options=data.columns)
+        st.write(f"Line Chart of {y_axis} by {x_axis}")
+        st.line_chart(data.set_index(x_axis)[y_axis])
 
     elif chart_type == "Bar Chart":
         st.write("Select columns for X and Y axes:")
         x_axis = st.selectbox("X-axis", options=data.columns)
         y_axis = st.selectbox("Y-axis", options=data.columns)
         st.write(f"Bar Chart of {y_axis} by {x_axis}")
-        # Create a bar chart with specified columns
         st.bar_chart(data.set_index(x_axis)[y_axis])
 
     elif chart_type == "Scatter Plot":
@@ -156,3 +170,38 @@ if uploaded_file is not None:
 if st.button("Clear File"):
     st.session_state.uploaded_file = None
     st.experimental_rerun()
+
+# Adding summary statistics
+if uploaded_file is not None:
+    st.sidebar.title("Data Summary")
+    st.sidebar.write(data.describe())
+
+    # Data Manipulation Options
+    st.sidebar.title("Data Manipulation")
+    manipulation_options = st.sidebar.multiselect(
+        "Select operations to apply",
+        options=["Drop Column", "Fill NA", "Filter Rows"]
+    )
+
+    if "Drop Column" in manipulation_options:
+        drop_column = st.sidebar.selectbox("Select column to drop", data.columns)
+        if st.sidebar.button("Drop Column"):
+            data.drop(columns=[drop_column], inplace=True)
+            st.write(f"Dropped column: {drop_column}")
+            st.write(data.head())
+
+    if "Fill NA" in manipulation_options:
+        fill_na_column = st.sidebar.selectbox("Select column to fill NA", data.columns)
+        fill_na_value = st.sidebar.text_input("Fill NA with:")
+        if st.sidebar.button("Fill NA"):
+            data[fill_na_column].fillna(fill_na_value, inplace=True)
+            st.write(f"Filled NA in column: {fill_na_column} with {fill_na_value}")
+            st.write(data.head())
+
+    if "Filter Rows" in manipulation_options:
+        filter_column = st.sidebar.selectbox("Select column to filter rows", data.columns)
+        filter_value = st.sidebar.text_input("Filter rows with value:")
+        if st.sidebar.button("Filter Rows"):
+            data = data[data[filter_column] == filter_value]
+            st.write(f"Filtered rows where {filter_column} == {filter_value}")
+            st.write(data.head())
