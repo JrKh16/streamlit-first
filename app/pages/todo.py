@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 # Title
-st.title("Advanced To-Do List")
+st.title("Easy To-Do List")
 
 # Initialize session state
 if 'tasks' not in st.session_state:
