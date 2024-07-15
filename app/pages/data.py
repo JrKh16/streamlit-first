@@ -2,206 +2,99 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.express as px
-import plotly.graph_objects as go
 
-# Title of the app
-st.title("Data")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
+def load_data():
+    uploaded_file = st.file_uploader("CSV file", type="csv")
+    if uploaded_file is not None:
+        return pd.read_csv(uploaded_file)
+    return None
 
-if uploaded_file is not None:
-    # Read the CSV file
-    data = pd.read_csv(uploaded_file, encoding='utf-8')
+def data_summary(df):
+    st.subheader("Data Summary")
+    st.write(df.describe())
+    
+    st.subheader("Column Info")
+    col_info = pd.DataFrame({
+        'Column': df.columns,
+        'Type': df.dtypes,
+        'Non-Null Count': df.count(),
+        'Null Count': df.isnull().sum()
+    })
+    st.write(col_info)
 
-    # Display the first few rows of the dataframe
-    st.write("Data Preview:")
-    st.write(data.head())
+def data_manipulation(df):
+    st.subheader("Data Manipulation")
+    
+    # Column selection
+    selected_columns = st.multiselect("Select columns to keep", df.columns)
+    if selected_columns:
+        df = df[selected_columns]
+    
+    # Sorting
+    sort_column = st.selectbox("Sort by column", ["None"] + list(df.columns))
+    if sort_column != "None":
+        sort_order = st.radio("Sort order", ["Ascending", "Descending"])
+        df = df.sort_values(by=sort_column, ascending=(sort_order == "Ascending"))
+    
+    # Filtering
+    filter_column = st.selectbox("Filter by column", ["None"] + list(df.columns))
+    if filter_column != "None":
+        if df[filter_column].dtype == "object":
+            filter_value = st.selectbox(f"Select {filter_column} value", ["All"] + list(df[filter_column].unique()))
+            if filter_value != "All":
+                df = df[df[filter_column] == filter_value]
+        else:
+            min_value, max_value = st.slider(f"Select range for {filter_column}",
+                                             float(df[filter_column].min()),
+                                             float(df[filter_column].max()),
+                                             (float(df[filter_column].min()), float(df[filter_column].max())))
+            df = df[(df[filter_column] >= min_value) & (df[filter_column] <= max_value)]
+    
+    return df
 
-    # Option to choose the type of chart
-    chart_type = st.selectbox(
-        "Select Chart Type",
-        options=[
-            "Line Chart",
-            "Bar Chart",
-            "Scatter Plot",
-            "Histogram",
-            "Pie Chart",
-            "Box Plot",
-            "Heatmap",
-            "Pair Plot",
-            "Violin Plot",
-            "Area Chart",
-            "3D Scatter Plot",
-            "Bubble Chart",
-            "Map",
-            "Line Plot with Plotly"
-        ]
-    )
-
-    # Data Filtering Options
-    st.sidebar.title("Filter Options")
-    filter_columns = st.sidebar.multiselect("Select columns to filter", data.columns)
-    filter_conditions = {}
-    for col in filter_columns:
-        unique_values = data[col].unique()
-        filter_conditions[col] = st.sidebar.multiselect(f"Filter values for {col}", unique_values)
-    if filter_conditions:
-        for col, values in filter_conditions.items():
-            if values:
-                data = data[data[col].isin(values)]
-
-    # Chart Type Logic
+def create_chart(df, chart_type, x_axis, y_axis):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
     if chart_type == "Line Chart":
-        st.write("Select columns for X and Y axes:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        st.write(f"Line Chart of {y_axis} by {x_axis}")
-        st.line_chart(data.set_index(x_axis)[y_axis])
-
+        sns.lineplot(data=df, x=x_axis, y=y_axis, ax=ax)
     elif chart_type == "Bar Chart":
-        st.write("Select columns for X and Y axes:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        st.write(f"Bar Chart of {y_axis} by {x_axis}")
-        st.bar_chart(data.set_index(x_axis)[y_axis])
-
+        sns.barplot(data=df, x=x_axis, y=y_axis, ax=ax)
     elif chart_type == "Scatter Plot":
-        st.write("Select columns for X and Y axes:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        st.write(f"Scatter Plot of {x_axis} vs {y_axis}")
-        fig, ax = plt.subplots()
-        ax.scatter(data[x_axis], data[y_axis])
-        ax.set_xlabel(x_axis)
-        ax.set_ylabel(y_axis)
-        st.pyplot(fig)
-
-    elif chart_type == "Histogram":
-        st.write("Select column for Histogram:")
-        column = st.selectbox("Column", options=data.columns)
-        st.write(f"Histogram of {column}")
-        fig, ax = plt.subplots()
-        ax.hist(data[column], bins=30)
-        ax.set_xlabel(column)
-        ax.set_ylabel("Frequency")
-        st.pyplot(fig)
-
-    elif chart_type == "Pie Chart":
-        st.write("Select column for Pie Chart:")
-        column = st.selectbox("Column", options=data.columns)
-        st.write(f"Pie Chart of {column}")
-        fig, ax = plt.subplots()
-        data[column].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax)
-        ax.set_ylabel("")
-        st.pyplot(fig)
-
+        sns.scatterplot(data=df, x=x_axis, y=y_axis, ax=ax)
     elif chart_type == "Box Plot":
-        st.write("Select column for Box Plot:")
-        column = st.selectbox("Column", options=data.columns)
-        st.write(f"Box Plot of {column}")
-        fig, ax = plt.subplots()
-        sns.boxplot(data[column], ax=ax)
+        sns.boxplot(data=df, x=x_axis, y=y_axis, ax=ax)
+    
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
+    plt.title(f"{chart_type}: {y_axis} vs {x_axis}")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    return fig
+
+def main():
+    st.title("DATA")
+
+    df = load_data()
+
+    if df is not None:
+        st.subheader("Data Preview")
+        st.write(df.head())
+
+        data_summary(df)
+        
+        df = data_manipulation(df)
+
+        st.subheader("Filtered Data Preview")
+        st.write(df.head())
+
+        st.subheader("Create Chart")
+        chart_type = st.selectbox("Select Chart Type", ["Line Chart", "Bar Chart", "Scatter Plot", "Box Plot"])
+        x_axis = st.selectbox("Select X-axis", df.columns)
+        y_axis = st.selectbox("Select Y-axis", df.columns)
+
+        fig = create_chart(df, chart_type, x_axis, y_axis)
         st.pyplot(fig)
 
-    elif chart_type == "Heatmap":
-        st.write("Select columns for Heatmap:")
-        x_axis = st.selectbox("X-axis", options=data.columns, index=0)
-        y_axis = st.selectbox("Y-axis", options=data.columns, index=1)
-        st.write(f"Heatmap of {x_axis} vs {y_axis}")
-        fig, ax = plt.subplots()
-        heatmap_data = pd.crosstab(data[x_axis], data[y_axis])
-        sns.heatmap(heatmap_data, ax=ax, cmap="viridis")
-        st.pyplot(fig)
-
-    elif chart_type == "Pair Plot":
-        st.write("Pair Plot of the DataFrame")
-        fig = sns.pairplot(data)
-        st.pyplot(fig)
-
-    elif chart_type == "Violin Plot":
-        st.write("Select column for Violin Plot:")
-        column = st.selectbox("Column", options=data.columns)
-        st.write(f"Violin Plot of {column}")
-        fig, ax = plt.subplots()
-        sns.violinplot(data[column], ax=ax)
-        st.pyplot(fig)
-
-    elif chart_type == "Area Chart":
-        st.write("Area Chart")
-        st.area_chart(data)
-
-    elif chart_type == "3D Scatter Plot":
-        st.write("Select columns for X, Y, and Z axes:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        z_axis = st.selectbox("Z-axis", options=data.columns)
-        st.write(f"3D Scatter Plot of {x_axis}, {y_axis}, and {z_axis}")
-        fig = px.scatter_3d(data, x=x_axis, y=y_axis, z=z_axis)
-        st.plotly_chart(fig)
-
-    elif chart_type == "Bubble Chart":
-        st.write("Select columns for X, Y, and Size:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        size = st.selectbox("Size", options=data.columns)
-        st.write(f"Bubble Chart of {x_axis} vs {y_axis}")
-        fig = px.scatter(data, x=x_axis, y=y_axis, size=size, hover_name=data.index)
-        st.plotly_chart(fig)
-
-    elif chart_type == "Map":
-        st.write("Select columns for Latitude and Longitude:")
-        lat_col = st.selectbox("Latitude", options=data.columns)
-        lon_col = st.selectbox("Longitude", options=data.columns)
-        st.write(f"Map with Latitude and Longitude")
-        fig = px.scatter_geo(data, lat=lat_col, lon=lon_col)
-        st.plotly_chart(fig)
-
-    elif chart_type == "Line Plot with Plotly":
-        st.write("Select columns for X and Y axes:")
-        x_axis = st.selectbox("X-axis", options=data.columns)
-        y_axis = st.selectbox("Y-axis", options=data.columns)
-        st.write(f"Line Plot of {x_axis} vs {y_axis} with Plotly")
-        fig = px.line(data, x=x_axis, y=y_axis)
-        st.plotly_chart(fig)
-
-# Clear the uploaded file
-if st.button("Clear File"):
-    st.session_state.uploaded_file = None
-    st.experimental_rerun()
-
-# Adding summary statistics
-if uploaded_file is not None:
-    st.sidebar.title("Data Summary")
-    st.sidebar.write(data.describe())
-
-    # Data Manipulation Options
-    st.sidebar.title("Data Manipulation")
-    manipulation_options = st.sidebar.multiselect(
-        "Select operations to apply",
-        options=["Drop Column", "Fill NA", "Filter Rows"]
-    )
-
-    if "Drop Column" in manipulation_options:
-        drop_column = st.sidebar.selectbox("Select column to drop", data.columns)
-        if st.sidebar.button("Drop Column"):
-            data.drop(columns=[drop_column], inplace=True)
-            st.write(f"Dropped column: {drop_column}")
-            st.write(data.head())
-
-    if "Fill NA" in manipulation_options:
-        fill_na_column = st.sidebar.selectbox("Select column to fill NA", data.columns)
-        fill_na_value = st.sidebar.text_input("Fill NA with:")
-        if st.sidebar.button("Fill NA"):
-            data[fill_na_column].fillna(fill_na_value, inplace=True)
-            st.write(f"Filled NA in column: {fill_na_column} with {fill_na_value}")
-            st.write(data.head())
-
-    if "Filter Rows" in manipulation_options:
-        filter_column = st.sidebar.selectbox("Select column to filter rows", data.columns)
-        filter_value = st.sidebar.text_input("Filter rows with value:")
-        if st.sidebar.button("Filter Rows"):
-            data = data[data[filter_column] == filter_value]
-            st.write(f"Filtered rows where {filter_column} == {filter_value}")
-            st.write(data.head())
+if __name__ == "__main__":
+    main()
